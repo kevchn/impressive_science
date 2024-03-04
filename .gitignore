@@ -13,3 +13,7 @@
 
 # Ignore HTML files
 *.html
+
+# Ingore other files
+*.aux
+*.toc

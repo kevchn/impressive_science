@@ -1,8 +1,8 @@
 ---
 title: "Pre-registration Experiment 1"
 output:
-  bookdown::word_document2: default
   bookdown::pdf_document2: default
+  bookdown::word_document2: default
   bookdown::html_document2:
       keep_md: yes
 always_allow_html: true
@@ -167,7 +167,7 @@ We will exclude participants failing the attention check, i.e. participants not 
 
 # Power analysis
 
-We ran a simulations to inform our choice of sample size. All assumptions and details on the procedure can be found in the `power_exp1.Rmd` document. Our assumptions on effect sizes were based on pilot data. We find that the minimum required sample size to detect a statistically significant effect with a power of 0.9 is n = 100 participants. We will therefor recruit 100 participants.
+We ran simulations to inform our choice of sample size. All assumptions and details on the procedure can be found in the `power_exp1.Rmd` document. Our assumptions on effect sizes were based on pilot data. We find that the minimum required sample size to detect a statistically significant effect with a power of 0.9 is n = 100 participants. We will therefor recruit 100 participants.
 
 ```{r, message=FALSE, echo=FALSE, warning=FALSE}
 # read power data
