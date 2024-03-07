@@ -188,16 +188,3 @@ ggplot(power,
   guides(color = FALSE) +
   facet_wrap(~outcome_variable)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-

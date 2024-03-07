@@ -17,3 +17,6 @@
 # Ingore other files
 *.aux
 *.toc
+
+# Ignore text files
+*.rtf
