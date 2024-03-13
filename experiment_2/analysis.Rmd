@@ -8,6 +8,10 @@ output:
 always_allow_html: true
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
 ```{r packages, message=FALSE, echo=FALSE, include=FALSE}
 library(tidyverse)     # create plots with ggplot, manipulate data, etc.
 library(broom.mixed)   # convert regression models into nice tables
