@@ -1,5 +1,5 @@
 ---
-title: "Data cleaning Experiment 1"
+title: "Data cleaning Experiment 2"
 output: 
   html_document: 
     keep_md: yes
@@ -41,7 +41,7 @@ levels(d$attention)
 table(d$attention)
 ```
 
-There are two failed attention checks. 
+There is one failed attention check. 
 
 ```{r}
 # filter to only valid attention check responses
@@ -78,25 +78,6 @@ d <- d %>%
   # all variables are coded as `character` - make key variables numeric
   mutate(across(c(learn, competence, impressed, trust), as.numeric)
          )
-```
-
-## Add demographics
-
-## Recode demographics
-
-```{r, message=FALSE}
-prolific_demographics <- read_csv("./data/prolific.csv")
-
-d <- left_join(d, prolific_demographics %>% select(-Age), by = c("PROLIFIC_PID" = "Participant id"))
-```
-
-
-```{r}
-d <- d %>% 
-  mutate(gender = case_when(Sex == "Male" ~ "male", 
-                            Sex == "Female" ~  "female", 
-                            .default = NA)
-         ) 
 ```
 
 ## Export data
