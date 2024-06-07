@@ -1,10 +1,10 @@
 ---
 title: "Analysis Study 1"
 output:
-  bookdown::pdf_document2: default
-  bookdown::word_document2: default
   bookdown::html_document2:
       keep_md: yes
+  bookdown::word_document2: default
+  bookdown::pdf_document2: default
 always_allow_html: true
 bibliography: ../references.bib
 ---
@@ -63,7 +63,7 @@ ggplot(data, aes(x = knowledge_avg)) +
   facet_wrap(~discipline)
 ```
 
-```{r}
+```{r main-results}
 # as plot
 # Calculate the mean
 data %>% 
@@ -79,7 +79,7 @@ ggplot(data, aes(x = n_correct)) +
   facet_wrap(~discipline)
 ```
 
-```{r}
+```{r results-by-question}
 question_data <- data %>% 
   # bring to long format
   pivot_longer(cols = starts_with("knowledge") & !ends_with("avg"), 

@@ -10,12 +10,20 @@ always_allow_html: true
 
 
 
-```{r, message=FALSE}
+
+```r
 # load required packages
 library("lme4")        # model specification / estimation
 library("lmerTest")    # get p-values for mixed models
 library("broom.mixed") # extracting data from model fits 
 library("tidyverse")   # data wrangling and visualisation
+```
+
+```
+## Warning: package 'stringr' was built under R version 4.2.3
+```
+
+```r
 library("patchwork")    # combine plots
 library(systemfit)
 
@@ -88,7 +96,8 @@ The simulation study is designed to compare three different statistical approach
 
 The raw treatment effects are assumed to be the same as Cohen's d values since the standard deviation ($ \sigma $) is assumed to be 1.
 
-```{r}
+
+```r
 # Parameters
 n <- 1000  # Number of subjects
 rho <- 0.5  # Correlation between outcomes
@@ -118,6 +127,18 @@ data <- data %>%
 
 # View first few rows of the data
 head(data)
+```
+
+```
+## # A tibble: 6 × 4
+##      id treatment knowledge[,1] impressiveness[,1]
+##   <int>     <dbl>         <dbl>              <dbl>
+## 1     1         0        -0.123             -1.07 
+## 2     2         1         0.438              0.843
+## 3     3         1        -0.422             -0.728
+## 4     4         1        -0.891              0.298
+## 5     5         1        -0.336             -1.42 
+## 6     6         1        -0.348             -0.551
 ```
 
 ## 2. Analysis
@@ -160,7 +181,8 @@ $$
 
 In code:
 
-```{r}
+
+```r
 # Fit separate linear models
 model1 <- lm(knowledge ~ treatment, data = data)
 model2 <- lm(impressiveness ~ treatment, data = data)
@@ -178,6 +200,16 @@ t_stat <- diff_b / se_diff
 p_value_sep <- 2 * pt(-abs(t_stat), df = n - 2)
 
 list(t_stat = t_stat, p_value_sep = p_value_sep)
+```
+
+```
+## $t_stat
+##  Estimate 
+## -2.849119 
+## 
+## $p_value_sep
+##   Estimate 
+## 0.00447417
 ```
 
 The downside with this approach is, that it cannot account for the dependency between the two outcomes (or the correlated error terms, in other words) that arise from the fact that they are both measured on the same participants. 
@@ -198,7 +230,8 @@ $$
 
 In code:
 
-```{r}
+
+```r
 # Define the regression equations
 eq1 <- knowledge ~ treatment
 eq2 <- impressiveness ~ treatment
@@ -209,11 +242,74 @@ system <- list(knowledge = eq1, impressiveness = eq2)
 # Fit the SUR model
 fit <- systemfit(system, method = "SUR", data = data)
 summary(fit)
+```
 
+```
+## 
+## systemfit results 
+## method: SUR 
+## 
+##           N   DF     SSR  detRCov  OLS-R2 McElroy-R2
+## system 2000 1996 1947.17 0.688428 0.02544   0.022984
+## 
+##                   N  DF     SSR      MSE     RMSE       R2   Adj R2
+## knowledge      1000 998 955.151 0.957065 0.978297 0.043893 0.042935
+## impressiveness 1000 998 992.019 0.994007 0.996999 0.006988 0.005993
+## 
+## The covariance matrix of the residuals used for estimation
+##                knowledge impressiveness
+## knowledge       0.957065       0.512739
+## impressiveness  0.512739       0.994007
+## 
+## The covariance matrix of the residuals
+##                knowledge impressiveness
+## knowledge       0.957065       0.512739
+## impressiveness  0.512739       0.994007
+## 
+## The correlations of the residuals
+##                knowledge impressiveness
+## knowledge       1.000000       0.525692
+## impressiveness  0.525692       1.000000
+## 
+## 
+## SUR estimates for 'knowledge' (equation 1)
+## Model Formula: knowledge ~ treatment
+## 
+##               Estimate Std. Error  t value   Pr(>|t|)    
+## (Intercept)  0.2132051  0.0441499  4.82911 1.5862e-06 ***
+## treatment   -0.4188704  0.0618830 -6.76875 2.2124e-11 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.978297 on 998 degrees of freedom
+## Number of observations: 1000 Degrees of Freedom: 998 
+## SSR: 955.151101 MSE: 0.957065 Root MSE: 0.978297 
+## Multiple R-Squared: 0.043893 Adjusted R-Squared: 0.042935 
+## 
+## 
+## SUR estimates for 'impressiveness' (equation 2)
+## Model Formula: impressiveness ~ treatment
+## 
+##               Estimate Std. Error  t value  Pr(>|t|)   
+## (Intercept)  0.0850708  0.0449939  1.89072 0.0589517 . 
+## treatment   -0.1671331  0.0630660 -2.65013 0.0081733 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.996999 on 998 degrees of freedom
+## Number of observations: 1000 Degrees of Freedom: 998 
+## SSR: 992.018893 MSE: 0.994007 Root MSE: 0.996999 
+## Multiple R-Squared: 0.006988 Adjusted R-Squared: 0.005993
+```
+
+```r
 # Test for equality of the coefficients
 p_value_sur <- linearHypothesis(fit, "knowledge_treatment - impressiveness_treatment = 0")$'Pr(>F)'[2]
 p_value_sur
+```
 
+```
+## [1] 3.672103e-05
 ```
 
 #### Approach 3: Mixed-Effects Model
@@ -230,7 +326,8 @@ Where $ value_{ij} $ represents the outcome (knowledge or impressiveness) for su
 
 In code:
 
-```{r}
+
+```r
 # Reshape to long format
 long_data <- data %>%
   pivot_longer(cols = c(knowledge, impressiveness), 
@@ -241,6 +338,22 @@ long_data <- data %>%
 model <- lmer(value ~ treatment * outcome + (1 | id), data = long_data)
 
 summary(model)$coefficients
+```
+
+```
+##                               Estimate Std. Error       df   t value
+## (Intercept)                 0.08507076 0.04457393 1563.953  1.908532
+## treatment                  -0.16713312 0.06247727 1563.953 -2.675103
+## outcomeknowledge            0.12813430 0.04341796  998.000  2.951182
+## treatment:outcomeknowledge -0.25173732 0.06085699  998.000 -4.136539
+##                                Pr(>|t|)
+## (Intercept)                5.650544e-02
+## treatment                  7.548532e-03
+## outcomeknowledge           3.239617e-03
+## treatment:outcomeknowledge 3.822726e-05
+```
+
+```r
 p_value_mixed <- tidy(model) %>% 
   filter(term == "treatment:outcomeknowledge") %>% 
   pull(p.value)
@@ -248,11 +361,16 @@ p_value_mixed <- tidy(model) %>%
 p_value_mixed
 ```
 
+```
+## [1] 3.822726e-05
+```
+
 # 3. Functions
 
 ## Simulate a sample
 
-```{r}
+
+```r
 generate_data <- function(n, rho, sigma = 1, 
                            # (raw treatment effects correspond to Cohen's d, if we assume sigma = 1)
                            treatment_effect_knowledge = -0.4,
@@ -305,7 +423,8 @@ generate_data <- function(n, rho, sigma = 1,
 
 ## Run models
 
-```{r}
+
+```r
 run_models <- function(data, alpha = 0.05){
   
   # Approach 1: Separate regressions
@@ -362,10 +481,20 @@ results <- run_models(data = test_data)
 results
 ```
 
+```
+## # A tibble: 3 × 4
+##   estimate p_value method                  significant
+##      <dbl>   <dbl> <chr>                   <lgl>      
+## 1   -0.180 0.0468  separate models         TRUE       
+## 2   -0.180 0.00547 SUR                     TRUE       
+## 3   -0.180 0.00552 mixed-model interaction TRUE
+```
+
 
 ## Calculate power
 
-```{r}
+
+```r
 calculate_power <- function(iterations, n, alpha, ...) {
   
   # create data frame with model results for generated samples
@@ -400,7 +529,8 @@ calculate_power <- function(iterations, n, alpha, ...) {
 
 ## Power by sample size
 
-```{r}
+
+```r
 power_by_sample_size <- function(file_name, sample_sizes, iterations,...) {
   
   # only run analysis if a file with that name does not yet exists
@@ -447,7 +577,8 @@ power_by_sample_size <- function(file_name, sample_sizes, iterations,...) {
 
 ## Cohen's d parameters
 
-```{r}
+
+```r
 # list of parameters 
 parameters<- c(list(
   sample_sizes = c(30, 50, 100, 150, 200, 250, 300), 
@@ -470,7 +601,8 @@ parameters<- c(list(
 ```
 
 
-```{r}
+
+```r
 # run simulation
 do.call(power_by_sample_size, c(parameters, 
                                         list(file_name = "power_cohensd.csv")
@@ -478,13 +610,44 @@ do.call(power_by_sample_size, c(parameters,
                 )
 
 power <- read_csv("data/power_cohensd.csv")
+```
 
+```
+## Rows: 21 Columns: 4
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: ","
+## chr (1): method
+## dbl (3): power, n, iterations
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+
+```r
 power
+```
+
+```
+## # A tibble: 21 × 4
+##    method                  power     n iterations
+##    <chr>                   <dbl> <dbl>      <dbl>
+##  1 SUR                     0.354    30       1000
+##  2 mixed-model interaction 0.34     30       1000
+##  3 separate models         0.131    30       1000
+##  4 SUR                     0.567    50       1000
+##  5 mixed-model interaction 0.556    50       1000
+##  6 separate models         0.262    50       1000
+##  7 SUR                     0.845   100       1000
+##  8 mixed-model interaction 0.845   100       1000
+##  9 separate models         0.587   100       1000
+## 10 SUR                     0.959   150       1000
+## # ℹ 11 more rows
 ```
 
 ## Raw parameters
 
-```{r}
+
+```r
 # list of parameters 
 parameters <- c(list(
   sample_sizes = c(30, 50, 100, 150, 200, 250, 300), 
@@ -507,7 +670,8 @@ parameters <- c(list(
 ```
 
 
-```{r}
+
+```r
 # run simulation
 do.call(power_by_sample_size, c(parameters, 
                                         list(file_name = "power_raw.csv")
@@ -515,15 +679,46 @@ do.call(power_by_sample_size, c(parameters,
                 )
 
 power_raw <- read_csv("data/power_raw.csv")
+```
 
+```
+## Rows: 21 Columns: 4
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: ","
+## chr (1): method
+## dbl (3): power, n, iterations
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+```
+
+```r
 power_raw
+```
+
+```
+## # A tibble: 21 × 4
+##    method                  power     n iterations
+##    <chr>                   <dbl> <dbl>      <dbl>
+##  1 SUR                     0.356    30       1000
+##  2 mixed-model interaction 0.344    30       1000
+##  3 separate models         0.258    30       1000
+##  4 SUR                     0.525    50       1000
+##  5 mixed-model interaction 0.52     50       1000
+##  6 separate models         0.407    50       1000
+##  7 SUR                     0.783   100       1000
+##  8 mixed-model interaction 0.778   100       1000
+##  9 separate models         0.686   100       1000
+## 10 SUR                     0.951   150       1000
+## # ℹ 11 more rows
 ```
 
 ### Plot results
 
 We can plot the results of this power calculation.
 
-```{r}
+
+```r
 # plot results
 plot_power <- function(data) {
   
@@ -544,20 +739,55 @@ plot_power <- function(data) {
 }
 ```
 
-```{r plot-power}
+
+```r
 plot_power(power)
 ```
 
+![](power_exp3_files/figure-html/plot-power-1.png)<!-- -->
+
 ### Calculate precise sample size threshold
 
-```{r}
+
+```r
 # accuracy
 power %>% filter(power >= 0.9) %>%
   arrange(n) 
 ```
 
-```{r}
+```
+## # A tibble: 11 × 4
+##    method                  power     n iterations
+##    <chr>                   <dbl> <dbl>      <dbl>
+##  1 SUR                     0.959   150       1000
+##  2 mixed-model interaction 0.958   150       1000
+##  3 SUR                     0.983   200       1000
+##  4 mixed-model interaction 0.983   200       1000
+##  5 separate models         0.916   200       1000
+##  6 SUR                     0.999   250       1000
+##  7 mixed-model interaction 0.999   250       1000
+##  8 separate models         0.975   250       1000
+##  9 SUR                     0.999   300       1000
+## 10 mixed-model interaction 0.999   300       1000
+## 11 separate models         0.995   300       1000
+```
+
+
+```r
 power %>% filter(method == "mixed-model interaction") %>%
   arrange(desc(power)) 
+```
+
+```
+## # A tibble: 7 × 4
+##   method                  power     n iterations
+##   <chr>                   <dbl> <dbl>      <dbl>
+## 1 mixed-model interaction 0.999   250       1000
+## 2 mixed-model interaction 0.999   300       1000
+## 3 mixed-model interaction 0.983   200       1000
+## 4 mixed-model interaction 0.958   150       1000
+## 5 mixed-model interaction 0.845   100       1000
+## 6 mixed-model interaction 0.556    50       1000
+## 7 mixed-model interaction 0.34     30       1000
 ```
 
